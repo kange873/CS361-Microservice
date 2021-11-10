@@ -1,48 +1,37 @@
 const express = require('express');
+const bodyParser = require('body-parser')
+const Jimp = require('jimp');
 const app = express();
 const path = require('path');
-const multer = require('multer');
-const sharp = require('sharp');
 
-const port = 7081;
+const port = 7099;
+const thumbnail = path.join(__dirname, '/uploads/thumbnail.jpg');
 
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+app.use(bodyParser.urlencoded({ extended: true }));
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads');
-    },
-    filename: (req, file, cb) => {
-        console.log(file);
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-const fileFilter = (req, file, cb) => {
-    if (file.mimetype == 'image/jpeg' || file.mimetype == 'image/png') {
-        cb(null, true);
-    } else {
-        cb(null, false);
-    }
-}
-const upload = multer({ storage: storage, fileFilter: fileFilter });
-
-//Configure sharp
-
-//Upload route
-app.post('/upload', upload.single('image'), (req, res, next) => {
+// upload route
+app.post('/upload', (req, res) => {
     try {
-        sharp(req.file.path).resize(100, 100).toFile('uploads/' + 'thumbnail-' + req.file.originalname, (err, resizeImage) => {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log(resizeImage);
-                console.log("File has been resized")
-            }
-            return res.sendFile(path.join(__dirname, 'uploads/' + 'thumbnail-' + req.file.originalname));
-        })
+        Jimp.read(req.body.image).then(image => {
+            image
+            .resize(100,100)
+            //saves thumbnail into uploads directory
+            .write(thumbnail);
+        }) .catch((error) => {
+            console.error(error);
+        });
+        return res.status(201).json({
+            message: "Image has been resized"
+        });
     } catch (error) {
         console.error(error);
     }
+});
+
+// thumbnail route to get the image
+app.get('/thumbnail', (req, res) => {
+    res.sendFile(thumbnail);
 });
 
 app.listen(port, () => console.log('Ready for Requests'));
