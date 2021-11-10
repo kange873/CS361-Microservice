@@ -2,11 +2,13 @@
 
 Note that it only accepts jpegs and pngs.
 
-Send a POST request to http://flip1.engr.oregonstate.edu:7081/upload
-This will add your image to an uploads folder and return a thumbnail of the image.
+Send a POST request to http://flip1.engr.oregonstate.edu:7099/upload.
+Send the file using an application/x-www-form-urlencoded.
 
-There is no physical form so you'll have to send the form-data from scratch
+This will add your resized image to an uploads folder.
+The response will just be a JSON that looks like 
+{
+    "message": "Image has been resized" 
+}
 
-The format will look different depending on what language you are using.
-
-It is important to set the "name" as "image" though when sending the request.
+You can access the image by sending a GET request to http://flip1.engr.oregonstate.edu:7099/thumbnail.
